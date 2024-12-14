@@ -42,12 +42,7 @@ jobs:
           Write-Output $response
           $header = $response.Headers.'Content-Disposition'
           Write-Output $header
-          if ($header -match 'filename="?([^"]+)"?') {
-              Write-Output $matches
-              $filename = $matches[0]
-          } else {
-              $filename = 'downloaded.zip'
-          }
+          $filename = if ($header -match 'filename="?([^"]+)"?') { $matches[1] } else { 'downloaded.zip' }
           $response.Content | Out-File -FilePath $filename -Encoding Byte
           Write-Output "::set-output name=filename::$filename"
         shell: pwsh
