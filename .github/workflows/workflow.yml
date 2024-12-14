@@ -41,8 +41,10 @@ jobs:
           Write-Output "Web request response:"
           Write-Output $response
           $header = $response.Headers.'Content-Disposition'
+          Write-Output $header
           if ($header -match 'filename="?([^"]+)"?') {
-              $filename = $matches[1]
+              Write-Output $matches
+              $filename = $matches[0]
           } else {
               $filename = 'downloaded.zip'
           }
