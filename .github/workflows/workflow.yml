@@ -79,3 +79,4 @@ jobs:
         with:
           name: iso-files
           path: ./unzipped/**/*.iso
+          retention-days: 5
