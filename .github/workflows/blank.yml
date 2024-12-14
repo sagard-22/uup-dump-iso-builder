@@ -1,0 +1,81 @@
+# This is a basic workflow to help you get started with Actions
+
+name: UUP Windows Update Download
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  # push:
+  #   branches: [ "main" ]
+  # pull_request:
+  #   branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      uuid:
+        description: 'UUP dump UUID to download'
+        required: true
+        type: string
+        default: 'eead5e53-68fd-47a0-ba3f-1b6deb71a57b'
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  download:
+    # The type of runner that the job will run on
+    runs-on: windows-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+
+      - name: Download ZIP file using PowerShell
+        run: |
+          $uuid = '${{ github.event.inputs.uuid }}'
+          $url = "https://uupdump.net/get.php?id=$uuid&pack=en-us&edition=professional"
+          $body = "autodl=2&updates=1"
+          $output = "$uuid.zip"
+          $response = Invoke-WebRequest -Uri $url -Method POST -Body $body -ContentType "application/x-www-form-urlencoded"
+          Write-Output "Web request response:"
+          Write-Output $response
+          $header = $response.Headers.'Content-Disposition'
+          if ($header -match 'filename="?([^"]+)"?') {
+              $filename = $matches[1]
+          } else {
+              $filename = 'downloaded.zip'
+          }
+          $response.Content | Out-File -FilePath $filename -Encoding Byte
+          Write-Output "::set-output name=filename::$filename"
+        shell: pwsh
+
+      - name: Upload UUP zip as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.download.outputs.filename }}
+          path: ${{ steps.download.outputs.filename }}
+
+      
+  unzip_and_run:
+    runs-on: windows-latest
+    needs: download
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      
+      - name: Unzip the downloaded file
+        run: |
+          Expand-Archive -Path ${{ needs.download.outputs.filename }} -DestinationPath ./unzipped
+        shell: pwsh
+
+      - name: Run PowerShell script as Administrator
+        run: |
+          Start-Process powershell.exe -ArgumentList '-File ./unzipped/uup_windows_update.ps1' -Verb RunAs
+        shell: pwsh
+
+      - name: Upload ISO files as artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: iso-files
+          path: ./unzipped/**/*.iso
