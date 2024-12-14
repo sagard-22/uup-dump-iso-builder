@@ -44,7 +44,7 @@ jobs:
           Write-Output $header
           $filename = ($header.Split('filename=')[-1]).Trim('"')
           Write-Output $filename
-          $response.Content | Out-File -FilePath $filename -Encoding Byte
+          $response.Content | Set-Content -Path $filename -Force -AsByteStream
           Write-Output "::set-output name=filename::$filename"
         shell: pwsh
 
