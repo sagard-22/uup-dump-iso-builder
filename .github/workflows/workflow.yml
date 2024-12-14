@@ -42,7 +42,8 @@ jobs:
           Write-Output $response
           $header = $response.Headers.'Content-Disposition'
           Write-Output $header
-          $filename = if ($header -match 'filename="?([^"]+)"?') { $matches[1] } else { 'downloaded.zip' }
+          $filename = ($header.Split('filename=')[-1]).Trim('"')
+          Write-Output $filename
           $response.Content | Out-File -FilePath $filename -Encoding Byte
           Write-Output "::set-output name=filename::$filename"
         shell: pwsh
