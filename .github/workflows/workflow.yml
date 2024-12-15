@@ -25,6 +25,8 @@ jobs:
   download:
     # The type of runner that the job will run on
     runs-on: windows-latest
+    outputs:
+      filename: ${{ steps.set_filename.outputs.filename }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -32,6 +34,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Download ZIP file using PowerShell
+        id: set_filename
         run: |
           $uuid = '${{ github.event.inputs.uuid }}'
           $url = "https://uupdump.net/get.php?id=$uuid&pack=en-us&edition=professional"
