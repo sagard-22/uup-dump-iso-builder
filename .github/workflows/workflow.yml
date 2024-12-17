@@ -48,7 +48,8 @@ jobs:
           $filename = ($header.Split('filename=')[-1]).Trim('"')
           Write-Output $filename
           $response.Content | Set-Content -Path $filename -Force -AsByteStream
-          Write-Output "::set-output name=filename::$filename"
+          # Write-Output "::set-output name=filename::$filename"
+          "filename=$filename" >> $env:GITHUB_OUTPUT
         shell: pwsh
 
       - name: Upload UUP zip as artifact
