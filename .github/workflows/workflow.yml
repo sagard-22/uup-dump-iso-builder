@@ -1,7 +1,7 @@
 # This is a basic workflow to help you get started with Actions
 
 name: UUP Windows Update Download
-run-name: UUP Windows Update Download - ${{ inputs.uuid }} - ${{ inputs.url }}
+run-name: UUP Windows Update Download - ${{ inputs.uuid }} - ${{ inputs.uup_build_url }}
 
 # Controls when the workflow will run
 on:
@@ -18,12 +18,10 @@ on:
         description: 'UUP dump UUID to download'
         required: true
         type: string
-        default: 'eead5e53-68fd-47a0-ba3f-1b6deb71a57b'
       edition:
         description: 'UUP dump edition(s) to download'
         required: true
         type: string
-        default: 'professional'
       uup_build_url:
         description: 'UUP dump complete url'
         required: false
@@ -48,7 +46,7 @@ jobs:
         id: set_filename
         run: |
           # set default for test runs
-          $url = "${{ github.event.inputs.url }}"
+          $url = "${{ github.event.inputs.uup_build_url }}"
           if (-not $url) {
             $uuid = "${{ github.event.inputs.uuid || 'eead5e53-68fd-47a0-ba3f-1b6deb71a57b' }}"
             $edition = "${{ github.event.inputs.edition || 'professional' }}"
