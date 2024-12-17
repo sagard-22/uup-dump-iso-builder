@@ -73,6 +73,7 @@ jobs:
       
       - name: Unzip the downloaded file
         run: |
+          ls
           Expand-Archive -Path ${{ needs.download.outputs.filename }} -DestinationPath ./unzipped
         shell: pwsh
 
