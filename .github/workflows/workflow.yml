@@ -5,8 +5,8 @@ name: UUP Windows Update Download
 # Controls when the workflow will run
 on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
-  # push:
-  #   branches: [ "main" ]
+  push:
+    branches: [ "main" ]      
   # pull_request:
   #   branches: [ "main" ]
 
@@ -69,7 +69,7 @@ jobs:
 
       - name: Run PowerShell script as Administrator
         run: |
-          Start-Process powershell.exe -ArgumentList '-File ./unzipped/uup_download_windows.ps1' -Verb RunAs
+          & ./unzipped/uup_download_windows.ps1 
         shell: pwsh
 
       - name: Upload ISO files as artifacts
