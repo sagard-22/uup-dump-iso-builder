@@ -50,13 +50,15 @@ jobs:
         id: set_filename
         run: |
           # set default for test runs
-          $url = "${{ github.event.inputs.uup_build_url }}" -replace "download.php", "get.php"
+          $url = "${{ github.event.inputs.uup_build_url }}"      
           if (-not $url) {
             $uuid = "${{ github.event.inputs.uuid || 'eead5e53-68fd-47a0-ba3f-1b6deb71a57b' }}"
             $edition = "${{ github.event.inputs.edition || 'professional' }}"
-            $url = "https://uupdump.net/get.php?id=$uuid&pack=en-us&edition=$edition"
-                   "https://uupdump.net/get.php?id=10639fd0-bd1d-4272-9255-1f315a440256&pack=en-us&edition=professional
-          }          
+            $url = "https://uupdump.net/get.php?id=$uuid&pack=en-us&edition=$edition"                   
+          }
+          # fix url in case download url is used
+          $url = $url -replace "download.php", "get.php"
+          Write-Output $url
           $body = "autodl=2&updates=1"
           $response = Invoke-WebRequest -Uri $url -Method POST -Body $body -ContentType "application/x-www-form-urlencoded"
           Write-Output "Web request response:"
