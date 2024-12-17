@@ -66,12 +66,15 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4       
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
       
       - name: Unzip the downloaded file
         run: |
           ls
-          Expand-Archive -Path ${{ needs.download.outputs.filename }} -DestinationPath ./unzipped
+          ls ${{ needs.download.outputs.filename }}
+          Expand-Archive -Path artifacts/${{ needs.download.outputs.filename }} -DestinationPath ./unzipped
         shell: pwsh
 
       - name: Run PowerShell script as Administrator
