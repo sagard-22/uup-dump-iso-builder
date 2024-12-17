@@ -1,7 +1,7 @@
 # This is a basic workflow to help you get started with Actions
 
 name: UUP Windows Update Download
-run-name: UUP Windows Update Download - ${{ inputs.uuid }} - ${{ inputs.uup_build_url }}
+run-name: UUP Windows Update Download - ${{ inputs.uuid }} - ${{ inputs.uup_build_url }} - ${{ inputs.run_name }}
 
 # Controls when the workflow will run
 on:
@@ -25,7 +25,11 @@ on:
       uup_build_url:
         description: 'UUP dump complete url'
         required: false
-        type: string         
+        type: string
+      run_name:
+        description: 'Set run name'
+        required: false
+        type: string           
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
