@@ -16,11 +16,11 @@ on:
     inputs:
       uuid:
         description: 'UUP dump UUID to download'
-        required: true
+        required: false
         type: string
       edition:
         description: 'UUP dump edition(s) to download'
-        required: true
+        required: false
         type: string
       uup_build_url:
         description: 'UUP dump complete url'
