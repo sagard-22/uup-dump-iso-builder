@@ -50,6 +50,8 @@ jobs:
           $response.Content | Set-Content -Path $filename -Force -AsByteStream
           # Write-Output "::set-output name=filename::$filename"
           "filename=$filename" >> $env:GITHUB_OUTPUT
+          Expand-Archive -Path $filename -DestinationPath ./unzipped
+          
         shell: pwsh
 
       - name: Upload UUP zip as artifact
@@ -58,6 +60,24 @@ jobs:
           name: ${{ steps.set_filename.outputs.filename }}
           path: ${{ steps.set_filename.outputs.filename }}
           retention: 5 days
+
+      - name: Unzip the downloaded file
+        run: |
+          ls
+          Expand-Archive -Path $filename -DestinationPath ./unzipped
+        shell: pwsh
+
+      - name: Run PowerShell script as Administrator
+        run: |
+          Start-Process powershell.exe -ArgumentList '-File ./unzipped/uup_download_windows.ps1' -Verb RunAs
+        shell: pwsh
+
+      - name: Upload ISO files as artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: iso-files
+          path: ./unzipped/**/*.iso
+          retention-days: 5        
 
       
   unzip_and_run:
