@@ -57,6 +57,7 @@ jobs:
         with:
           name: ${{ steps.set_filename.outputs.filename }}
           path: ${{ steps.set_filename.outputs.filename }}
+          retention: 5 days
 
       
   unzip_and_run:
