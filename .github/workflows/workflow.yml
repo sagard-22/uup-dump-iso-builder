@@ -50,7 +50,7 @@ jobs:
           $response.Content | Set-Content -Path $filename -Force -AsByteStream
           # Write-Output "::set-output name=filename::$filename"
           "filename=$filename" >> $env:GITHUB_OUTPUT
-          Expand-Archive -Path $filename -DestinationPath ./unzipped
+          #Expand-Archive -Path $filename -DestinationPath ./unzipped
           
         shell: pwsh
 
@@ -64,7 +64,7 @@ jobs:
       - name: Unzip the downloaded file
         run: |
           ls
-          Expand-Archive -Path $filename -DestinationPath ./unzipped
+          Expand-Archive -Path ${{ steps.set_filename.outputs.filename }} -DestinationPath ./unzipped
         shell: pwsh
 
       - name: Run PowerShell script as Administrator
