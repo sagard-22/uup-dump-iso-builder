@@ -81,7 +81,7 @@ jobs:
         with:
           name: ${{ steps.set_filename.outputs.filename }}
           path: ${{ steps.set_filename.outputs.filename }}
-          retention: 5 days
+          retention-days: 5
 
       - name: Unzip the downloaded file
         run: |
