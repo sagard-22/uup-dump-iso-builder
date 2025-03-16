@@ -1,0 +1,142 @@
+# This is a basic workflow to help you get started with Actions
+
+name: UUP Windows Update Download
+run-name: UUP Windows Update Download - ${{ inputs.uuid }} - ${{ inputs.uup_build_url }} - ${{ inputs.run_name }}
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  # push:
+  #   branches: [ "main" ]      
+  # pull_request:
+  #   branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      uuid:
+        description: 'UUP dump UUID to download'
+        required: false
+        type: string
+      edition:
+        description: 'UUP dump edition(s) to download'
+        required: false
+        type: string
+      uup_build_url:
+        description: 'UUP dump complete url'
+        required: false
+        type: string
+      run_name:
+        description: 'Set run name'
+        required: false
+        type: string           
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: windows-latest
+    outputs:
+      filename: ${{ steps.set_filename.outputs.filename }}
+      isoname: ${{ steps.get_iso.outputs.filename }}
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+
+      - name: Download ZIP file using PowerShell
+        id: set_filename
+        run: |
+          # set default for test runs
+          $url = "${{ github.event.inputs.uup_build_url }}"      
+          if (-not $url) {
+            $uuid = "${{ github.event.inputs.uuid || 'eead5e53-68fd-47a0-ba3f-1b6deb71a57b' }}"
+            $edition = "${{ github.event.inputs.edition || 'professional' }}"
+            $url = "https://uupdump.net/get.php?id=$uuid&pack=en-us&edition=$edition"                   
+          }
+          # fix url in case download url is used
+          $url = $url -replace "download.php", "get.php"
+          Write-Output $url
+          $body = "autodl=2&updates=1"
+          $response = Invoke-WebRequest -Uri $url -Method POST -Body $body -ContentType "application/x-www-form-urlencoded"
+          Write-Output "Web request response:"
+          Write-Output $response
+          "Web request response:" >> $GITHUB_STEP_SUMMARY
+          $response >> $GITHUB_STEP_SUMMARY
+          # Get Filename from response header
+          $header = $response.Headers.'Content-Disposition'
+          Write-Output $header
+          $header >> $GITHUB_STEP_SUMMARY
+          $filename = ($header.Split('filename=')[-1]).Trim('"')
+          Write-Output $filename
+          $response.Content | Set-Content -Path $filename -Force -AsByteStream
+          "filename=$filename" >> $env:GITHUB_OUTPUT
+          
+        shell: pwsh
+
+      - name: Upload UUP zip as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.set_filename.outputs.filename }}
+          path: ${{ steps.set_filename.outputs.filename }}
+          retention-days: 5
+
+      - name: Unzip the downloaded file
+        run: |
+          ls
+          ls >> $GITHUB_STEP_SUMMARY
+          Expand-Archive -Path ${{ steps.set_filename.outputs.filename }} -DestinationPath .\unzipped
+        shell: pwsh
+
+      - name: Run PowerShell script as Administrator
+        id: get_iso
+        run: |
+          ls
+          ls .\unzipped
+          powershell cmd /c .\unzipped\uup_download_windows.cmd
+          ls
+          ls .\unzipped
+          $iso_name = ls .\unzipped\*.iso -Name
+          Write-Output $iso_name
+          "isoname=$iso_name" >> $env:GITHUB_OUTPUT          
+        shell: pwsh
+
+      - name: Upload ISO files as artifacts
+        if: always()
+        uses: actions/upload-artifact@v4        
+        with:
+          name: ${{ steps.get_iso.outputs.isoname }}
+          path: ./unzipped/**/*.iso
+          retention-days: 5        
+
+      
+  # unzip_and_run:
+  #   runs-on: windows-latest
+  #   needs: download
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+  #     - uses: actions/download-artifact@v4
+  #       with:
+  #         path: artifacts
+      
+  #     - name: Unzip the downloaded file
+  #       run: |
+  #         ls
+  #         ls artifacts/${{ needs.download.outputs.filename }}
+  #         Expand-Archive -Path artifacts/${{ needs.download.outputs.filename }} -DestinationPath ./unzipped
+  #       shell: pwsh
+
+  #     - name: Run PowerShell script as Administrator
+  #       run: |
+  #         Start-Process powershell.exe -ArgumentList '-File ./unzipped/uup_download_windows.ps1' -Verb RunAs
+  #       shell: pwsh
+
+  #     - name: Upload ISO files as artifacts
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: iso-files
+  #         path: ./unzipped/**/*.iso
+  #         retention-days: 5
